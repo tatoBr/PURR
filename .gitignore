@@ -1,0 +1,4 @@
+/.vscode
+/mongod
+/coverage
+/node_modules
