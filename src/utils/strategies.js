@@ -35,19 +35,16 @@ let jwtStrategy = new JwtStrategy( jwtOptions, jwtVerifyCallback );
 
 //LOCAL STRATEGY
 let localOptions = {
-    usernameField: 'email',
-    passReqToCallback: true
+    usernameField: 'email'
 }
-
 /**
- * 
- * @param {*} req 
+ *  
  * @param {String} email 
  * @param {String} password 
  * @param {Function} done 
  * @returns 
  */
-let localVerifyCallback = async( req, email, password, done ) => {
+let localVerifyCallback = async( email, password, done ) => {
     try {
         console.log( email )
         console.log( password )
@@ -57,8 +54,7 @@ let localVerifyCallback = async( req, email, password, done ) => {
 
         let passwordMatch = user.vaidatePassword( password );
         if( !passwordMatch ) return done( null, false );
-
-        req.user = user;
+        
         return done( null, user );
     } catch (error) {
         done( error, false )
