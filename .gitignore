@@ -2,3 +2,5 @@
 /mongod
 /coverage
 /node_modules
+/diagnostic.data
+/journal
