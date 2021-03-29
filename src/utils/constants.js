@@ -8,12 +8,14 @@ module.exports = {
     },   
     httpStatusCode:{
         OK: 200,
+        CREATED: 201,
         BAD_REQUEST: 400,
         NOT_FOUND: 404,
         INTERNAL_SERVER_ERROR: 500
     },
     globals: {
-        DEFAULT_LOGIN_WAIT_TIME: 1000 * 60 * 3
+        DEFAULT_LOGIN_WAIT_TIME: 1000 * 60 * 3,
+        SALT_ROUNDS: 12
     },
     models:{
         user: {
