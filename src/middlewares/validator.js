@@ -16,7 +16,7 @@ module.exports = {
         }
     },
     schemas:{
-        subscribe: Joi.object().keys({
+        signUp: Joi.object().keys({
             username: Joi.string()
                 .required()
                 .trim()
