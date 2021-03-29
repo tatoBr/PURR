@@ -84,25 +84,18 @@ describe('signToken function works properly', () => {
     const { ACCESS_TOKEN_SECRET } = require( '../../config' );    
     const id = '10';
     const issuer = 'helpers.signToken.test';
-    const expectedSignParam = {
-        iss: issuer,
+    const expectedSignParam = {        
         sub: id,
         iat: expect.any( Number ),
         exp: expect.any( Number )
     };
 
     it('throws TypeError if parameters type isn\'t string', () => {
-        const f = function () { return 'I\'m a function' };        
-        expect(() => signToken( 1, 1 )).toThrow( TypeError );
-        expect(() => signToken( 0.1, 0.1 )).toThrow( TypeError );
-        expect(() => signToken( true, true )).toThrow( TypeError );
-        expect(() => signToken( false, false )).toThrow( TypeError );
-        expect(() => signToken( undefined, undefined )).toThrow( TypeError );
-        expect(() => signToken( null, null )).toThrow( TypeError );
-        expect(() => signToken( Symbol('s'), Symbol('s'))).toThrow( TypeError );
-        expect(() => signToken( [1,2,3], [1,2,3] )).toThrow( TypeError );
-        expect(() => signToken( new Set([1,2,3]),  new Set([1,2,3]))).toThrow( TypeError );
-        expect(() => signToken( f,  f ).toThrow( TypeError ));
+        let invalidTypes = [ '', 0, 1 , 1.25, true, false, undefined, null, [], [1, 2, 3], new Set([]), new Set([1, 2, 3]), function(){}, new Object()];
+        for (let t of invalidTypes ) {
+            expect(() => signToken( t )).toThrow( TypeError ); 
+        }
+        
     });
     
     it('jwt.sign was invoked and returns as expected', () => {

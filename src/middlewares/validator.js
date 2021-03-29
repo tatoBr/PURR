@@ -10,7 +10,7 @@ module.exports = {
                 return res.status( BAD_REQUEST ).json( new ServerResponse( ServerResponse.INVALID_REQUEST_PROPERTY_MSG, result.error ))
             
             if( !req.value ) req.value = {};
-            req.value.body = result.value;
+            req.body = result.value;
             
             next()
         }
@@ -33,6 +33,19 @@ module.exports = {
                 .trim()
                 .min(8)
                 .max(24)                
+        }),
+
+        signIn: Joi.object().keys({
+            email: Joi.string()
+                .required()
+                .trim()
+                .lowercase()
+                .email(),
+            password: Joi.string()
+                .required()
+                .trim()
+                .min(8)
+                .max(24)
         }),
     }
 }

@@ -23,12 +23,11 @@ module.exports = class Helpers{
         return false;
     }
     
-    signToken( id, issuer ){
-        if( typeof id !=='string' || typeof issuer !== 'string' )
-        throw new TypeError();
+    signToken( id ){
+        if( typeof id !=='string' || !id )
+            throw new TypeError();
         
-        let token = jwt.sign({
-            iss: issuer,
+        let token = jwt.sign({            
             sub: id,
             iat: Date.now(),
             exp: Date.now() + ( 1000 * 60 * 60 * 24 )
