@@ -1,4 +1,8 @@
-const { isObject, hasInvalidProperty, signToken } = require('../helpers');
+const Helpers = require('../helpers');
+const helpers = new Helpers();
+
+const { isObject, hasInvalidProperty, signToken } = helpers;
+
 const jwt = require('jsonwebtoken');
 
 describe('isObject function works properly', () => {
@@ -88,7 +92,7 @@ describe('signToken function works properly', () => {
     };
 
     it('throws TypeError if parameters type isn\'t string', () => {
-        const f = function () { return 'I\'m a function' };
+        const f = function () { return 'I\'m a function' };        
         expect(() => signToken( 1, 1 )).toThrow( TypeError );
         expect(() => signToken( 0.1, 0.1 )).toThrow( TypeError );
         expect(() => signToken( true, true )).toThrow( TypeError );
