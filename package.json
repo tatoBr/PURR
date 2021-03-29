@@ -4,7 +4,7 @@
   "description": "A web messaging app to send and receive random messages and meet new people from around the world.",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon server.js",
+    "dev": "nodemon server.js --trace-warnings",
     "start": "node server.js",
     "test": "jest"
   },
@@ -26,6 +26,7 @@
     "morgan": "^1.10.0",
     "passport": "^0.4.1",
     "passport-jwt": "^4.0.0",
+    "passport-local": "^1.0.0",
     "passport-strategy": "^1.0.0"
   },
   "devDependencies": {
@@ -37,6 +38,7 @@
     "@types/mongoose": "^5.10.3",
     "@types/passport": "^1.0.6",
     "@types/passport-jwt": "^3.0.5",
+    "@types/passport-local": "^1.0.33",
     "@types/passport-strategy": "^0.2.35",
     "jest": "^26.6.3"
   },
