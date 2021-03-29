@@ -7,7 +7,7 @@ module.exports = class ServerResponse{
     static EMAIL_IN_USE_MSG = 'This email is already in use. Try again with a different email or log in with the existing account.';
     static USERNAME_TAKEN_MSG = 'Username already taken. Try a differente one.'
     static USER_SAVED_SUCCESSFULLY = 'User was successfully created' 
-    static USER_SUCCESSFULLY_LOGGEDIN = 'User\'s credential are valid and it successfully logged in in the system.'   
+    static USER_SUCCESSFULLY_LOGGEDIN = 'User\'s credential are valid and it successfully logged in the system.'   
 
     constructor( message, content = null ){
         this.message = message;
