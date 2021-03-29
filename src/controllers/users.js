@@ -9,7 +9,7 @@ const ServerResponse = require('../utils/serverResponse');
 const constants = require( '../utils/constants' );
 
 
-const { httpStatusCode: { CREATED, BAD_REQUEST }} = constants;
+const { httpStatusCode: { OK, CREATED, BAD_REQUEST }} = constants;
 
 module.exports = class Controller{
     /**
@@ -23,9 +23,8 @@ module.exports = class Controller{
         try {
             let user = await usersServices.create( req.body );            
             let token = helpers.signToken( user._id.toString());
-
-            res.set('Authorization', token );
-            return res.status( CREATED ).json( new ServerResponse( ServerResponse.USER_SAVED_SUCCESSFULLY, user ));
+            
+            return res.status( CREATED ).json( new ServerResponse( ServerResponse.USER_SAVED_SUCCESSFULLY, token));
 
         } catch ( error ) {
             console.trace('userservice -> sign up')
@@ -33,13 +32,12 @@ module.exports = class Controller{
         }
     }
 
-    signIn = async( req, res )=>{
+    signIn = async( req, res, next )=>{
         try {
             let user = req.user;            
-            let token = helpers.signToken( user._id.toString());
-
-            res.set('Authorization', token );
-            return res.status( CREATED ).json( new ServerResponse( ServerResponse.USER_SAVED_SUCCESSFULLY, user ));
+            let token =  helpers.signToken( user._id.toString());
+            
+            return res.status( OK ).json( new ServerResponse( ServerResponse.USER_SUCCESSFULLY_LOGGEDIN, token ));
 
         } catch ( error ) {
             console.trace('userservice -> sign up')
