@@ -27,8 +27,8 @@ app.use(( req, res )=>{
     res.status( NOT_FOUND ).json( new ServerResponse( ServerResponse.PATH_NOT_FOUND_MSG ));
 });
 
-app.use((error, req, res, next )=>{    
-    res.status( INTERNAL_SERVER_ERROR ).json( new ServerResponse( error.message || ServerResponse.COMMON_ERROR_MSG, error.name ));
+app.use(( error, req, res, next )=>{    
+    res.status( INTERNAL_SERVER_ERROR ).json( new ServerResponse( error.message || ServerResponse.COMMON_ERROR_MSG, null ));
 })
 
 module.exports = app;
