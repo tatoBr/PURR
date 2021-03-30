@@ -37,6 +37,14 @@ module.exports = {
                 FAVORITE_MESSAGES: 'favoriteMessages',
                 FRIENDS: 'friends',
                 BLOCKED_USERS: 'blockedUsers',
+                signInMethod: {
+                    DOC_NAME: 'signInMethod',
+                    enumerators: {
+                        LOCAL: 'local',
+                        GOOGLE: 'google',
+                        FACEBOOK: 'facebook'
+                    }
+                },
                 LOGIN_ATTEMPTS: 'loginAttempts',
                 LOGIN_WAITING_TIME:'loginWaitingTime',
                 REFRESH_TOKEN: 'refreshToken'

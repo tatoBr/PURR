@@ -1,13 +1,12 @@
 const { ExtractJwt, Strategy: JwtStrategy } = require('passport-jwt');
-const { Strategy: LocalStrategy } = require( 'passport-local')
+const { Strategy: LocalStrategy } = require( 'passport-local');
+const GoogleOAuthStrategy = require( 'passport-google-plus-token' );
 
-const { ACCESS_TOKEN_SECRET } = require('../config/index');
+const { ACCESS_TOKEN_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET } = require('../config/index');
 const UserModel = require('../models/user');
 
 const { models:{ user }} = require('../utils/constants' );
 const { EMAIL } = user.fields;
-
-
 
 //JSON WEB TOKENS STRATEGY
 let jwtOptions = {
@@ -62,8 +61,27 @@ let localVerifyCallback = async( email, password, done ) => {
 };
 let localStrategy = new LocalStrategy( localOptions, localVerifyCallback );
 
+
+//GOOGLE OAUTH2 STRATEGY
+let oAuthOptions = {
+    clientID: GOOGLE_CLIENT_ID,
+    clientSecret: GOOGLE_CLIENT_SECRET,
+    passReqToCallback: true
+}
+let oAuthVerifyCallback = async( req, accessToken, refreshToken, profile, next) => {
+    console.log( 'Estou aqui;')
+    console.log( 'requisition', req );
+    console.log( 'access token', accessToken );
+    console.log( 'refresh token', refreshToken );
+    console.log( 'profile', profile );
+    next( null, false );
+}
+
+let oAuthStrategy = new GoogleOAuthStrategy( oAuthOptions, oAuthVerifyCallback );
+
 module.exports = {
     jwtStrategy,
-    localStrategy
+    localStrategy,
+    oAuthStrategy
 }
 
