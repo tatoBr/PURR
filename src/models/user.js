@@ -14,27 +14,16 @@ const { TITLE, BODY} = drafts.fields;
 const { DOC_NAME: SIGNIN_METHOD } = signInMethod;
 const { LOCAL, GOOGLE, FACEBOOK } = signInMethod.enumerators;
 
-
 const schema = new Schema({
     _id:{
         type: Schema.Types.ObjectId,
         required: true,
-    },
-    [EMAIL]:{
-        type: Schema.Types.String,
-        required: true,
-        index:true,
-        unique:true
     },
     [USERNAME]:{
         type: Schema.Types.String,
         required: true,
         index:true,
         unique:true
-    },
-    [PASSWORD]:{
-        type: Schema.Types.String,
-        required:true,    
     },
     [DRAFTS]:[
         {
@@ -49,8 +38,30 @@ const schema = new Schema({
     [FRIENDS]: [{ type: Schema.Types.ObjectId, ref: USER }],
     [BLOCKED_USERS]: [{ type: Schema.Types.ObjectId, ref: USER }],
     [SIGNIN_METHOD]:{
-        type: String,
+        type: Schema.Types.String,
         enum: [ LOCAL, GOOGLE, FACEBOOK ],
+        required: true
+    },
+    [LOCAL]: {
+        [EMAIL]: {
+            type: Schema.Types.String,
+            lowercase: true
+        },
+        [PASSWORD]: Schema.Types.String 
+    },
+    [GOOGLE]:{
+        _id: Schema.Types.String,
+        [EMAIL]: {
+            type: Schema.Types.String,
+            lowercase: true
+        }
+    },
+    [FACEBOOK]: {
+        _id: Schema.Types.String,
+        [EMAIL]: {
+            type: Schema.Types.String,
+            lowercase: true
+        }
     },
     [LOGIN_ATTEMPTS]: {
         type: Schema.Types.Number,
@@ -64,17 +75,20 @@ const schema = new Schema({
 });
 
 schema.pre( "save", async function(){
-    try {        
-        let hash = await bcrypt.hash( this[ PASSWORD ], SALT_ROUNDS );
-        this[PASSWORD] = hash;               
-    } catch (error) {
+    try {
+        if( this[SIGNIN_METHOD] === LOCAL ){
+            let hash = await bcrypt.hash( this[ LOCAL ][ PASSWORD ], SALT_ROUNDS );
+            this[ LOCAL ][PASSWORD] = hash;               
+        }        
+    } catch ( error ) {
       throw error;
     };
 });
 
 schema.methods.vaidatePassword = async function( password ){
     try {
-        return await bcrypt.compare( password, this[ PASSWORD ] );
+
+        return await bcrypt.compare( password, this[ LOCAL ][ PASSWORD ] );
     } catch (error) {
         throw error;
     }
