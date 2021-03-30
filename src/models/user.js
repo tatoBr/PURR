@@ -6,13 +6,21 @@ const bcrypt = require( 'bcrypt' );
 const { globals:{ SALT_ROUNDS }, models:{ user, message:{ MODEL_NAME: MESSAGE }}} = require('../utils/constants' );
 
 const { MODEL_NAME: USER } = user;
-const { EMAIL, USERNAME, PASSWORD, MESSAGE_POOL, RECEIVED, SENT, FAVORITE_MESSAGES, FRIENDS, BLOCKED_USERS, signInMethod, LOGIN_ATTEMPTS, LOGIN_WAITING_TIME, REFRESH_TOKEN, drafts } = user.fields;
+const { USERNAME, MESSAGE_POOL, RECEIVED, SENT, FAVORITE_MESSAGES, FRIENDS, BLOCKED_USERS, signInMethod, local, google, facebook, LOGIN_ATTEMPTS, LOGIN_WAITING_TIME, REFRESH_TOKEN, drafts } = user.fields;
 
-const { DOC_NAME: DRAFTS } = drafts;
-const { TITLE, BODY} = drafts.fields;
+const { DOC_NAME: DRAFTS_DOC } = drafts;
+const { DRAFT_TITLE, DRAFT_BODY } = drafts.fields;
 
 const { DOC_NAME: SIGNIN_METHOD } = signInMethod;
 const { LOCAL, GOOGLE, FACEBOOK } = signInMethod.enumerators;
+
+const { DOC_NAME: LOCAL_DOC } = local;
+const { DOC_NAME: GOOGLE_DOC } = google;
+const { DOC_NAME: FACEBOOK_DOC } = facebook;
+
+const { EMAIL: LOCAL_EMAIL, PASSWORD: LOCAL_PASSWORD } = local.fields
+const { ID: GOOGLE_ID, EMAIL: GOOGLE_EMAIL } = google.fields
+const { ID: FACEBOOK_ID, EMAIL: FACEBOOK_EMAIL } = facebook.fields
 
 const schema = new Schema({
     _id:{
@@ -25,10 +33,10 @@ const schema = new Schema({
         index:true,
         unique:true
     },
-    [DRAFTS]:[
+    [DRAFTS_DOC]:[
         {
-            [TITLE]: Schema.Types.String,
-            [BODY]: Schema.Types.String
+            [DRAFT_TITLE]: Schema.Types.String,
+            [DRAFT_BODY]: Schema.Types.String
         }
     ],
     [MESSAGE_POOL]: [{ type: Schema.Types.ObjectId, ref: MESSAGE }],
@@ -42,23 +50,23 @@ const schema = new Schema({
         enum: [ LOCAL, GOOGLE, FACEBOOK ],
         required: true
     },
-    [LOCAL]: {
-        [EMAIL]: {
+    [LOCAL_DOC]: {
+        [LOCAL_EMAIL]: {
             type: Schema.Types.String,
             lowercase: true
         },
-        [PASSWORD]: Schema.Types.String 
+        [LOCAL_PASSWORD]: Schema.Types.String 
     },
-    [GOOGLE]:{
-        _id: Schema.Types.String,
-        [EMAIL]: {
+    [GOOGLE_DOC]:{
+        [GOOGLE_ID]: Schema.Types.String,
+        [GOOGLE_EMAIL]: {
             type: Schema.Types.String,
             lowercase: true
         }
     },
-    [FACEBOOK]: {
-        _id: Schema.Types.String,
-        [EMAIL]: {
+    [FACEBOOK_DOC]: {
+        [FACEBOOK_ID]: Schema.Types.String,
+        [FACEBOOK_EMAIL]: {
             type: Schema.Types.String,
             lowercase: true
         }
@@ -76,9 +84,9 @@ const schema = new Schema({
 
 schema.pre( "save", async function(){
     try {
-        if( this[SIGNIN_METHOD] === LOCAL ){
-            let hash = await bcrypt.hash( this[ LOCAL ][ PASSWORD ], SALT_ROUNDS );
-            this[ LOCAL ][PASSWORD] = hash;               
+        if( this[ SIGNIN_METHOD ] === LOCAL ){            
+            let hash = await bcrypt.hash( this[ LOCAL_DOC ][ LOCAL_PASSWORD ], SALT_ROUNDS );
+            this[ LOCAL_DOC ][ LOCAL_PASSWORD ] = hash;               
         }        
     } catch ( error ) {
       throw error;
@@ -87,8 +95,9 @@ schema.pre( "save", async function(){
 
 schema.methods.vaidatePassword = async function( password ){
     try {
-
-        return await bcrypt.compare( password, this[ LOCAL ][ PASSWORD ] );
+        if( this[ SIGNIN_METHOD ] === LOCAL )
+            return await bcrypt.compare( password, this[ LOCAL_DOC ][ LOCAL_PASSWORD ] );
+        return null;
     } catch (error) {
         throw error;
     }
