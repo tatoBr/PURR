@@ -20,10 +20,8 @@ module.exports = {
     models:{
         user: {
             MODEL_NAME:'User',
-            fields:{
-                EMAIL: 'email',
-                USERNAME: 'username',
-                PASSWORD: 'password',
+            fields:{               
+                USERNAME: 'username',                
                 drafts: {
                     DOC_NAME: 'drafts',
                     fields: {
@@ -43,6 +41,27 @@ module.exports = {
                         LOCAL: 'local',
                         GOOGLE: 'google',
                         FACEBOOK: 'facebook'
+                    }
+                },
+                local:{
+                    DOC_NAME: 'local',
+                    fields: {
+                        EMAIL: 'email',
+                        PASSWORD: 'password'
+                    }
+                },
+                google:{
+                    DOC_NAME: 'gloogle',
+                    fields: {
+                        ID: '_id',
+                        EMAIL: 'email',                        
+                    }
+                },
+                facebook:{
+                    DOC_NAME: 'facebook',
+                    fields: {
+                        ID: '_id',
+                        EMAIL: 'email',                        
                     }
                 },
                 LOGIN_ATTEMPTS: 'loginAttempts',
