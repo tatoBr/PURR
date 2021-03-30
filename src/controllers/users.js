@@ -8,27 +8,46 @@ const usersServices = new UsersServices();
 const ServerResponse = require('../utils/serverResponse');
 const constants = require( '../utils/constants' );
 
+const { USERNAME, local, google, facebook, signInMethod } = constants.models.user.fields
 
-const { httpStatusCode: { OK, CREATED, BAD_REQUEST }} = constants;
+const { DOC_NAME: SIGNIN_METHOD } = signInMethod
+const { DOC_NAME: LOCAL_DOC } = local;
+const { DOC_NAME: GOOGLE_DOC } = google;
+const { DOC_NAME: FACEBOOK_DOC } = facebook;
 
-module.exports = class Controller{
-    /**
-     * 
-     * @param { Request } req 
-     * @param {*} res 
-     */
-    signUp = async( req, res )=>{
-        let data = req.body;
+const { LOCAL, FACEBOOK, GOOGLE } = signInMethod.enumerators;
+const { EMAIL: LOCAL_EMAIL, PASSWORD: LOCAL_PASSWORD } = local.fields;
+const { ID: GOOGLE_ID, EMAIL: GOOGLE_EMAIL } = google.fields;
+const { ID: FACEBOOK_ID, EMAIL: FACEBOOK_EMAIL } = facebook.fields;
 
-        try {
-            let user = await usersServices.create( req.body );            
-            let token = helpers.signToken( user._id.toString());
-            
+const { httpStatusCode: { OK, CREATED, BAD_REQUEST }, models:{ user: { fields: {}}}} = constants;
+
+module.exports = class Controller{    
+    signUp = async( req, res, next )=>{
+        try {            
+            let data = {
+                [USERNAME]: req.body[ USERNAME ],
+                [SIGNIN_METHOD]: LOCAL,           
+                [LOCAL_DOC]: { 
+                    [LOCAL_EMAIL]: req.body[ LOCAL_EMAIL ],
+                    [LOCAL_PASSWORD]: req.body[ LOCAL_PASSWORD ]
+                },
+                [GOOGLE_DOC]: {
+                    [GOOGLE_ID]: null,
+                    [GOOGLE_EMAIL]: null
+                },
+                [FACEBOOK_DOC]: {
+                    [FACEBOOK_ID]: null,
+                    [FACEBOOK_EMAIL]: null
+                    }
+            };
+                       
+            let user = await usersServices.create( data );            
+            let token = helpers.signToken( user._id.toString());            
             return res.status( CREATED ).json( new ServerResponse( ServerResponse.USER_SAVED_SUCCESSFULLY, token));
 
-        } catch ( error ) {
-            console.trace('userservice -> sign up')
-            throw error;
+        } catch ( error ) {            
+            next( error )
         }
     }
 
@@ -39,9 +58,8 @@ module.exports = class Controller{
             
             return res.status( OK ).json( new ServerResponse( ServerResponse.USER_SUCCESSFULLY_LOGGEDIN, token ));
 
-        } catch ( error ) {
-            console.trace('userservice -> sign up')
-            throw error;
+        } catch ( error ) {            
+            next( error );
         }
     };
 
