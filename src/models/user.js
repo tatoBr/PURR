@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 const bcrypt = require( 'bcrypt' );
 
-const { globals:{ SALT_ROUNDS }, models:{ user, message:{ MODEL_NAME: MESSAGE }}} = require('../utils/constants' );
+const { globals:{ SALT_ROUNDS, DEFAULT_LOGIN_WAIT_TIME, MAX_LOGIN_ATTEMPTS }, models:{ user, message:{ MODEL_NAME: MESSAGE }}} = require('../utils/constants' );
 
 const { MODEL_NAME: USER } = user;
 const { USERNAME, EMAIL, PASSWORD, GOOGLE_ID, FACEBOOK_ID, signUpMethod } = user.properties;
@@ -16,17 +16,16 @@ const { DRAFT_TITLE, DRAFT_BODY } = drafts.fields;
 const { DOC_NAME: SIGN_UP_METHOD } = signUpMethod;
 const { LOCAL, GOOGLE, FACEBOOK } = signUpMethod.enumerators;
 
+
 exports.UserClass = class User{
     /**
      * Class User constructor method
      * @param { String } username required
      * @param { String } email required
-     * @param { String } signUpMethod local, google or facebook
-     * @param { String } password required if signUpMethod is local
-     * @param { String } google_id required if signUpMethod is google
-     * @param { String } facebook_id required if signUpMethod is facebook
+     * @param { String } signUpMethod local, google or facebook 
      */
     constructor( username, email, signUpMethod, options = {}){
+        this._id = options._id || new mongoose.Types.ObjectId();
         this[ USERNAME ] = username;
         this[ EMAIL ] = email;
         this[ SIGN_UP_METHOD ] = signUpMethod;
@@ -40,7 +39,7 @@ exports.UserClass = class User{
         this[ FAVORITE_MESSAGES ] = options[ FAVORITE_MESSAGES ] || [];
         this[ FRIENDS ] = options[ FRIENDS ] || [];
         this[ BLOCKED_USERS ] = options[ BLOCKED_USERS ] || [];
-        this[ LOGIN_ATTEMPTS ] = 0;
+        this[ LOGIN_ATTEMPTS ] = options[ LOGIN_ATTEMPTS ] || 0;
         this[ LOGIN_WAITING_TIME ] = options[ LOGIN_WAITING_TIME ] || new Date( Date.now()).toISOString();           
     }
 }
@@ -105,10 +104,33 @@ schema.pre( "save", async function(){
     };
 });
 
-schema.methods.vaidatePassword = async function( password ){
+schema.methods.validatePassword = async function( password ){
     try {
-        if( this[ SIGNIN_METHOD ] === LOCAL )
-            return await bcrypt.compare( password, this[ PASSWORD ] );
+        if( this[ SIGN_UP_METHOD ] === LOCAL ){
+            let waitTime = new Date( this[ LOGIN_WAITING_TIME ]);
+            let now = new Date( Date.now());
+            
+            //CHECK IF IT'S IN WAITING TIME
+            if( now < waitTime ){
+                await this.save();
+                throw new Error( 'To Many Failed tries. Wait a few minutes and try again.' )
+            }
+            else{
+                let match =  await bcrypt.compare( password, this[ PASSWORD ]);
+                if( !match ){
+                    this[ LOGIN_ATTEMPTS ]++;                    
+                    //CHECK IF REACHED LOGIN TRIES LIMIT
+                    if( this[ LOGIN_ATTEMPTS ] >= MAX_LOGIN_ATTEMPTS ){
+                        this[ LOGIN_ATTEMPTS ] = 0;
+                        this[ LOGIN_WAITING_TIME ] = new Date( Date.now() + DEFAULT_LOGIN_WAIT_TIME ).toISOString();
+                        await this.save();
+                        throw new Error( 'Max login attempts reached.')
+                    }
+                    await this.save();
+                }
+                return match; 
+            }           
+        }
         return null;
     } catch (error) {
         throw error;
