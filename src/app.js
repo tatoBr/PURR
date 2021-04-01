@@ -27,8 +27,10 @@ app.use(( req, res )=>{
     res.status( NOT_FOUND ).json( new ServerResponse( ServerResponse.PATH_NOT_FOUND_MSG ));
 });
 
-app.use(( error, req, res, next )=>{    
-    res.status( INTERNAL_SERVER_ERROR ).json( new ServerResponse( error.message || ServerResponse.COMMON_ERROR_MSG, null ));
+app.use(( error, req, res, next )=>{
+    let message = error.message || ServerResponse.COMMON_ERROR_MSG;
+    let response = new ServerResponse( message, null, new Object( error ));    
+    res.status( INTERNAL_SERVER_ERROR ).json( response );
 })
 
 module.exports = app;
