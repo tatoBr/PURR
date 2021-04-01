@@ -9,8 +9,9 @@ module.exports = class ServerResponse{
     static USER_SAVED_SUCCESSFULLY = 'User was successfully created' 
     static USER_SUCCESSFULLY_LOGGEDIN = 'User\'s credential are valid and it successfully logged in the system.'   
 
-    constructor( message, content = null ){
+    constructor( message, content = null, error = null ){
         this.message = message;
         this.content = content;
+        this.error = error;
     }
 };
