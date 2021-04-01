@@ -20,8 +20,20 @@ module.exports = {
     models:{
         user: {
             MODEL_NAME:'User',
-            fields:{               
-                USERNAME: 'username',                
+            properties:{               
+                USERNAME: 'username',
+                EMAIL: 'email',
+                PASSWORD: 'password',
+                GOOGLE_ID: 'google_id',
+                FACEBOOK_ID: 'faceboo_id',             
+                signUpMethod: {
+                    DOC_NAME: 'signUpMethod',
+                    enumerators: {
+                        LOCAL: 'local',
+                        GOOGLE: 'google',
+                        FACEBOOK: 'facebook'
+                    }
+                },
                 drafts: {
                     DOC_NAME: 'drafts',
                     fields: {
@@ -35,39 +47,10 @@ module.exports = {
                 FAVORITE_MESSAGES: 'favoriteMessages',
                 FRIENDS: 'friends',
                 BLOCKED_USERS: 'blockedUsers',
-                signInMethod: {
-                    DOC_NAME: 'signInMethod',
-                    enumerators: {
-                        LOCAL: 'local',
-                        GOOGLE: 'google',
-                        FACEBOOK: 'facebook'
-                    }
-                },
-                local:{
-                    DOC_NAME: 'local',
-                    fields: {
-                        EMAIL: 'email',
-                        PASSWORD: 'password'
-                    }
-                },
-                google:{
-                    DOC_NAME: 'gloogle',
-                    fields: {
-                        ID: '_id',
-                        EMAIL: 'email',                        
-                    }
-                },
-                facebook:{
-                    DOC_NAME: 'facebook',
-                    fields: {
-                        ID: '_id',
-                        EMAIL: 'email',                        
-                    }
-                },
                 LOGIN_ATTEMPTS: 'loginAttempts',
                 LOGIN_WAITING_TIME:'loginWaitingTime',
                 REFRESH_TOKEN: 'refreshToken'
-            }
+            },
         },
         message:{
             MODEL_NAME: 'Message',

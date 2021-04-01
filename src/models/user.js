@@ -6,25 +6,49 @@ const bcrypt = require( 'bcrypt' );
 const { globals:{ SALT_ROUNDS }, models:{ user, message:{ MODEL_NAME: MESSAGE }}} = require('../utils/constants' );
 
 const { MODEL_NAME: USER } = user;
-const { USERNAME, MESSAGE_POOL, RECEIVED, SENT, FAVORITE_MESSAGES, FRIENDS, BLOCKED_USERS, signInMethod, local, google, facebook, LOGIN_ATTEMPTS, LOGIN_WAITING_TIME, REFRESH_TOKEN, drafts } = user.fields;
+const { USERNAME, EMAIL, PASSWORD, GOOGLE_ID, FACEBOOK_ID, signUpMethod } = user.properties;
+const { MESSAGE_POOL, SENT, RECEIVED, FAVORITE_MESSAGES, drafts } = user.properties
+const { FRIENDS, BLOCKED_USERS, LOGIN_ATTEMPTS, LOGIN_WAITING_TIME, REFRESH_TOKEN } = user.properties;
 
 const { DOC_NAME: DRAFTS_DOC } = drafts;
 const { DRAFT_TITLE, DRAFT_BODY } = drafts.fields;
 
-const { DOC_NAME: SIGNIN_METHOD } = signInMethod;
-const { LOCAL, GOOGLE, FACEBOOK } = signInMethod.enumerators;
+const { DOC_NAME: SIGN_UP_METHOD } = signUpMethod;
+const { LOCAL, GOOGLE, FACEBOOK } = signUpMethod.enumerators;
 
-const { DOC_NAME: LOCAL_DOC } = local;
-const { DOC_NAME: GOOGLE_DOC } = google;
-const { DOC_NAME: FACEBOOK_DOC } = facebook;
-
-const { EMAIL: LOCAL_EMAIL, PASSWORD: LOCAL_PASSWORD } = local.fields
-const { ID: GOOGLE_ID, EMAIL: GOOGLE_EMAIL } = google.fields
-const { ID: FACEBOOK_ID, EMAIL: FACEBOOK_EMAIL } = facebook.fields
+exports.UserClass = class User{
+    /**
+     * Class User constructor method
+     * @param { String } username required
+     * @param { String } email required
+     * @param { String } signUpMethod local, google or facebook
+     * @param { String } password required if signUpMethod is local
+     * @param { String } google_id required if signUpMethod is google
+     * @param { String } facebook_id required if signUpMethod is facebook
+     */
+    constructor( username, email, signUpMethod, options = {}){
+        this[ USERNAME ] = username;
+        this[ EMAIL ] = email;
+        this[ SIGN_UP_METHOD ] = signUpMethod;
+        this[ PASSWORD ] = options[ PASSWORD ] || '';
+        this[ GOOGLE_ID ] = options[ GOOGLE_ID ] || '';
+        this[ FACEBOOK_ID ] = options[ FACEBOOK_ID ] || '';
+        this[ DRAFTS_DOC ] = options[ DRAFTS_DOC ] || [];
+        this[ MESSAGE_POOL ] = options[ MESSAGE_POOL ] || [];
+        this[ RECEIVED ] =  options[ RECEIVED ] || [];
+        this[ SENT ] = options[ SENT ] || [];
+        this[ FAVORITE_MESSAGES ] = options[ FAVORITE_MESSAGES ] || [];
+        this[ FRIENDS ] = options[ FRIENDS ] || [];
+        this[ BLOCKED_USERS ] = options[ BLOCKED_USERS ] || [];
+        this[ LOGIN_ATTEMPTS ] = 0;
+        this[ LOGIN_WAITING_TIME ] = options[ LOGIN_WAITING_TIME ] || new Date( Date.now()).toISOString();           
+    }
+}
 
 const schema = new Schema({
     _id:{
         type: Schema.Types.ObjectId,
+        default: () => new mongoose.Types.ObjectId(),
         required: true,
     },
     [USERNAME]:{
@@ -33,6 +57,20 @@ const schema = new Schema({
         index:true,
         unique:true
     },
+    [ EMAIL ]:{
+        type: Schema.Types.String,
+        required: true,
+        index:true,
+        unique:true
+    },
+    [ SIGN_UP_METHOD ]:{
+        type: Schema.Types.String,
+        enum: [ LOCAL, GOOGLE, FACEBOOK ],
+        required: true
+    },
+    [ PASSWORD ]: Schema.Types.String,
+    [ GOOGLE_ID ]: Schema.Types.String,
+    [ FACEBOOK_ID ]: Schema.Types.String,
     [DRAFTS_DOC]:[
         {
             [DRAFT_TITLE]: Schema.Types.String,
@@ -44,33 +82,7 @@ const schema = new Schema({
     [SENT]: [{ type: Schema.Types.ObjectId, ref: MESSAGE }],
     [FAVORITE_MESSAGES]: [{ type: Schema.Types.ObjectId, ref: MESSAGE }],
     [FRIENDS]: [{ type: Schema.Types.ObjectId, ref: USER }],
-    [BLOCKED_USERS]: [{ type: Schema.Types.ObjectId, ref: USER }],
-    [SIGNIN_METHOD]:{
-        type: Schema.Types.String,
-        enum: [ LOCAL, GOOGLE, FACEBOOK ],
-        required: true
-    },
-    [LOCAL_DOC]: {
-        [LOCAL_EMAIL]: {
-            type: Schema.Types.String,
-            lowercase: true
-        },
-        [LOCAL_PASSWORD]: Schema.Types.String 
-    },
-    [GOOGLE_DOC]:{
-        [GOOGLE_ID]: Schema.Types.String,
-        [GOOGLE_EMAIL]: {
-            type: Schema.Types.String,
-            lowercase: true
-        }
-    },
-    [FACEBOOK_DOC]: {
-        [FACEBOOK_ID]: Schema.Types.String,
-        [FACEBOOK_EMAIL]: {
-            type: Schema.Types.String,
-            lowercase: true
-        }
-    },
+    [BLOCKED_USERS]: [{ type: Schema.Types.ObjectId, ref: USER }],    
     [LOGIN_ATTEMPTS]: {
         type: Schema.Types.Number,
         default: 0,
@@ -84,9 +96,9 @@ const schema = new Schema({
 
 schema.pre( "save", async function(){
     try {
-        if( this[ SIGNIN_METHOD ] === LOCAL ){            
-            let hash = await bcrypt.hash( this[ LOCAL_DOC ][ LOCAL_PASSWORD ], SALT_ROUNDS );
-            this[ LOCAL_DOC ][ LOCAL_PASSWORD ] = hash;               
+        if( this[ SIGN_UP_METHOD ] === LOCAL ){            
+            let hash = await bcrypt.hash( this[ PASSWORD ], SALT_ROUNDS );
+            this[ PASSWORD ] = hash;               
         }        
     } catch ( error ) {
       throw error;
@@ -96,11 +108,12 @@ schema.pre( "save", async function(){
 schema.methods.vaidatePassword = async function( password ){
     try {
         if( this[ SIGNIN_METHOD ] === LOCAL )
-            return await bcrypt.compare( password, this[ LOCAL_DOC ][ LOCAL_PASSWORD ] );
+            return await bcrypt.compare( password, this[ PASSWORD ] );
         return null;
     } catch (error) {
         throw error;
     }
 }
+exports.UserModel = mongoose.model( USER, schema );
 
-module.exports = mongoose.model( USER, schema );
+    
